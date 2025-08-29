@@ -66,6 +66,7 @@ export default function Register() {
         >
           Register
         </button>
+
       </form>
 
       {message && (
