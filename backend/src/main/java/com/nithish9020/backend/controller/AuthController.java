@@ -2,6 +2,7 @@
 package com.nithish9020.backend.controller;
 
 import com.nithish9020.backend.dto.SignupRequest;
+import com.nithish9020.backend.dto.TempUser;
 import com.nithish9020.backend.dto.VerifyOtpRequest;
 import com.nithish9020.backend.entity.User;
 import com.nithish9020.backend.service.*;
@@ -18,6 +19,7 @@ public class AuthController {
     private final OtpService otpService;
     private final EmailService emailService;
     private final JwtService jwtService;
+    private final RedisService redisService; // Add RedisService
 
     // Step A: start signup -> create user (unverified), generate OTP, email it
     @PostMapping("/signup")
@@ -28,8 +30,9 @@ public class AuthController {
             return ResponseEntity.badRequest().body("❌ Email already registered");
         }
 
-        // create user (unverified)
-        User saved = userService.createLocalUser(req.getName(), email, req.getPassword());
+        // Hash password and store user data in Redis
+        String passwordHash = userService.encodePassword(req.getPassword());
+        redisService.saveTempUser(email, req.getName(), passwordHash); // implement this
 
         // generate OTP, store in Redis, send email
         String otp = otpService.generateOtp(email);
@@ -43,12 +46,20 @@ public class AuthController {
     public ResponseEntity<?> verifyOtp(@RequestBody VerifyOtpRequest req) {
         String email = req.getEmail().toLowerCase();
         boolean ok = otpService.verifyOtp(email, req.getCode());
-        if (!ok) return ResponseEntity.badRequest().body("❌ Invalid or expired OTP");
+        if (!ok)
+            return ResponseEntity.badRequest().body("❌ Invalid or expired OTP");
 
+        // Get user data from Redis and save to DB
+        TempUser tempUser = redisService.getTempUser(email); // implement this
+        if (tempUser == null)
+            return ResponseEntity.badRequest().body("❌ Signup expired. Please try again.");
+
+        User savedUser = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash());
         userService.markVerified(email);
+        redisService.deleteTempUser(email);
+
         String token = jwtService.generateToken(email);
-        // return token so client can store it and consider user logged in
-        return ResponseEntity.ok(new AuthResponse("✅ Email verified. Logged in.", token));
+        return ResponseEntity.ok(new AuthResponse("✅ Email verified. Logged in", token));
     }
 
     // Optional: login endpoint (email+password) - returns JWT if verified already
@@ -68,5 +79,6 @@ public class AuthController {
     }
 
     // Simple response DTO inline
-    record AuthResponse(String message, String token) {}
+    record AuthResponse(String message, String token) {
+    }
 }

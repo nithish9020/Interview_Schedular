@@ -49,4 +49,8 @@ public class UserService {
                 .map(u -> passwordEncoder.matches(rawPassword, u.getPasswordHash()))
                 .orElse(false);
     }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
 }
