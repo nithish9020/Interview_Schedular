@@ -54,7 +54,7 @@ public class AuthController {
         if (tempUser == null)
             return ResponseEntity.badRequest().body("❌ Signup expired. Please try again.");
 
-        User savedUser = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash());
+        User saved = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash());
         userService.markVerified(email);
         redisService.deleteTempUser(email);
 

@@ -1,8 +1,9 @@
 // src/App.tsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "@/context/AuthContext";
-import AuthRedirect from "@/components/AuthRedirect";
+import AuthRedirect from "@/components/auth/AuthRedirect";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
             }
           />
         </Routes>
+        <ToastContainer />
       </Router>
     </AuthProvider>
   );

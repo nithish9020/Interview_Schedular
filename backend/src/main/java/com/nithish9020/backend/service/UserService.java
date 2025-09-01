@@ -29,7 +29,7 @@ public class UserService {
         User u = User.builder()
                 .name(name)
                 .email(email.toLowerCase())
-                .passwordHash(passwordEncoder.encode(rawPassword))
+                .passwordHash(rawPassword)
                 .emailVerified(false)
                 .createdAt(Instant.now())
                 .build();
