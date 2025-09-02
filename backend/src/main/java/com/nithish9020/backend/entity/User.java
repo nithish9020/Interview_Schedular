@@ -6,6 +6,8 @@ import lombok.*;
 
 import java.time.Instant;
 
+import com.nithish9020.backend.dto.SignupRequest.ROLE;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -26,8 +28,12 @@ public class User {
     @Column(nullable=false)
     private String passwordHash; // BCrypt hashed password
 
+    @Builder.Default
     @Column(nullable=false)
     private boolean emailVerified = false;
 
     private Instant createdAt;
+    
+    @Column(nullable=false)
+    private ROLE role;
 }

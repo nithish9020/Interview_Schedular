@@ -1,6 +1,7 @@
 // src/main/java/com/nithish9020/backend/service/UserService.java
 package com.nithish9020.backend.service;
 
+import com.nithish9020.backend.dto.SignupRequest.ROLE;
 import com.nithish9020.backend.entity.User;
 import com.nithish9020.backend.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,13 +26,14 @@ public class UserService {
     }
 
     // Create user with hashed password and emailVerified=false
-    public User createLocalUser(String name, String email, String rawPassword) {
+    public User createLocalUser(String name, String email, String rawPassword, ROLE role) {
         User u = User.builder()
                 .name(name)
                 .email(email.toLowerCase())
                 .passwordHash(rawPassword)
                 .emailVerified(false)
                 .createdAt(Instant.now())
+                .role(role)
                 .build();
         return userRepository.save(u);
     }

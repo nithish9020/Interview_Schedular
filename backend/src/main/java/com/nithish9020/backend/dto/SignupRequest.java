@@ -8,4 +8,10 @@ public class SignupRequest {
     private String name;
     private String email;
     private String password;
+    private ROLE role;
+
+    public enum ROLE {
+        INTERVIEWER,
+        APPLICANT
+    }
 }

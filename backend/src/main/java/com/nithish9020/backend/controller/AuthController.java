@@ -4,6 +4,7 @@ package com.nithish9020.backend.controller;
 import com.nithish9020.backend.dto.SignupRequest;
 import com.nithish9020.backend.dto.TempUser;
 import com.nithish9020.backend.dto.VerifyOtpRequest;
+import com.nithish9020.backend.dto.SignupRequest.ROLE;
 import com.nithish9020.backend.entity.User;
 import com.nithish9020.backend.service.*;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +28,18 @@ public class AuthController {
         String email = req.getEmail().toLowerCase();
 
         if (userService.findByEmail(email).isPresent()) {
-            return ResponseEntity.badRequest().body("❌ Email already registered");
+            return ResponseEntity.badRequest().body("Email already registered");
         }
 
         // Hash password and store user data in Redis
         String passwordHash = userService.encodePassword(req.getPassword());
-        redisService.saveTempUser(email, req.getName(), passwordHash); // implement this
+        redisService.saveTempUser(email, req.getName(), passwordHash, req.getRole()); // implement this
 
         // generate OTP, store in Redis, send email
         String otp = otpService.generateOtp(email);
         emailService.sendOtp(email, otp);
 
-        return ResponseEntity.ok("✅ Signup started. Check your email for the OTP (10 min).");
+        return ResponseEntity.ok("Signup started. Check your email for the OTP (10 min).");
     }
 
     // Step B: verify OTP -> mark verified & return JWT for auto-login
@@ -47,19 +48,19 @@ public class AuthController {
         String email = req.getEmail().toLowerCase();
         boolean ok = otpService.verifyOtp(email, req.getCode());
         if (!ok)
-            return ResponseEntity.badRequest().body("❌ Invalid or expired OTP");
+            return ResponseEntity.badRequest().body("Invalid or expired OTP");
 
         // Get user data from Redis and save to DB
         TempUser tempUser = redisService.getTempUser(email); // implement this
         if (tempUser == null)
-            return ResponseEntity.badRequest().body("❌ Signup expired. Please try again.");
+            return ResponseEntity.badRequest().body("Signup expired. Please try again.");
 
-        User saved = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash());
+        User saved = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash(), tempUser.getRole());
         userService.markVerified(email);
         redisService.deleteTempUser(email);
 
         String token = jwtService.generateToken(email);
-        return ResponseEntity.ok(new AuthResponse("✅ Email verified. Logged in", token));
+        return ResponseEntity.ok(new AuthResponse("Email verified. Logged in", token, saved.getRole()));
     }
 
     // Optional: login endpoint (email+password) - returns JWT if verified already
@@ -67,18 +68,19 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody SignupRequest req) {
         String email = req.getEmail().toLowerCase();
         if (!userService.authenticate(email, req.getPassword())) {
-            return ResponseEntity.badRequest().body("❌ Invalid credentials");
+            return ResponseEntity.badRequest().body("Invalid credentials");
         }
         // Ensure email verified
         User user = userService.findByEmail(email).orElseThrow();
         if (!user.isEmailVerified()) {
-            return ResponseEntity.badRequest().body("❌ Email not verified");
+            return ResponseEntity.badRequest().body("Email not verified");
         }
+
         String token = jwtService.generateToken(email);
-        return ResponseEntity.ok(new AuthResponse("✅ Login successful", token));
+        return ResponseEntity.ok(new AuthResponse("Login successful", token, user.getRole()));
     }
 
     // Simple response DTO inline
-    record AuthResponse(String message, String token) {
+    record AuthResponse(String message, String token, ROLE role) {
     }
 }
