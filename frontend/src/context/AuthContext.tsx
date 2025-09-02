@@ -1,9 +1,10 @@
+import type { UserRole } from "@/lib/types";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 type AuthContextType = {
   user: any;
   token: string;
-  login: (user: any, token: string) => void;
+  login: (user: any, token: string, role: UserRole) => void;
   logout: () => void;
   loading: boolean;
 };
@@ -25,11 +26,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = (user: any, token: string) => {
+  const login = (user: any, token: string, role: UserRole) => {
     setUser(user);
     setToken(token);
     localStorage.setItem("jwt_token", token);
     localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("role", role);
   };
 
   const logout = () => {

@@ -11,6 +11,7 @@ import SignupForm from "@/components/auth/SignupForm"
 import OtpForm from "@/components/auth/OtpForm"
 import axios from "axios"
 import AuthSidePanel from "@/components/auth/AuthSidePanel"
+import type { UserRole } from "@/lib/types"
 
 export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,7 +26,7 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
     try {
       const res = await loginUser(email, password);
       showToast.success(res.message || "Login successful");
-      login({ email }, res.token);
+      login({ email }, res.token, res.role); // <-- Store JWT and user
       navigate("/dashboard");
     } catch (err: any) {
       showToast.error(err.response?.data || "Login failed");
@@ -33,9 +34,9 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
   };
 
   // Signup handler
-  const handleSignup = async (name: string, email: string, password: string) => {
+  const handleSignup = async (name: string, email: string, password: string, role: UserRole) => {
     try {
-      const res = await signupUser(name, email, password);
+      const res = await signupUser(name, email, password, role);
       if (typeof res === "string" && res.includes("OTP")) {
         showToast.success(res);
         setOtpStep(true);
@@ -58,7 +59,7 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
       });
       if (res.data.message?.includes("verified") && res.data.token) {
         showToast.success(res.data.message);
-        login({ email: signupEmail }, res.data.token); // <-- Store JWT and user
+        login({ email: signupEmail }, res.data.token, res.data.role); // <-- Store JWT and user
         setOtpStep(false);
         setIsLogin(true);
         navigate("/dashboard"); // <-- Go to dashboard

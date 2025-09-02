@@ -1,6 +1,8 @@
 // 📂 dto/SignupRequest.java
 package com.nithish9020.backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 import lombok.Data;
 
 @Data
@@ -12,6 +14,23 @@ public class SignupRequest {
 
     public enum ROLE {
         INTERVIEWER,
-        APPLICANT
+        APPLICANT;
+
+        @JsonCreator
+        public static ROLE fromString(String value) {
+            if (value == null)
+                return null;
+            switch (value.toUpperCase()) {
+                case "INTERVIEWER":
+                    return INTERVIEWER;
+                case "APPLICANT":
+                    return APPLICANT;
+                case "DEFAULT":
+                    return APPLICANT; // 👈 decide how to map
+                default:
+                    throw new IllegalArgumentException("Invalid role: " + value);
+            }
+        }
     }
+    
 }

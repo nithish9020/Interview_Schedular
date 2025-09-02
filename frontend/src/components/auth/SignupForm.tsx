@@ -2,23 +2,26 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { UserRole } from "@/lib/types";
 
 export default function SignupForm({
   onSignup,
   error,
   switchToLogin,
 }: {
-  onSignup: (name: string, email: string, password: string) => void;
+  onSignup: (name: string, email: string, password: string, role: UserRole) => void;
   error: string;
   switchToLogin: () => void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<UserRole>(UserRole.APPLICANT); 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSignup(name, email, password);
+    onSignup(name, email, password, role);
   };
 
   return (
@@ -37,6 +40,18 @@ export default function SignupForm({
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+        </div>
+        <div className="grid gap-3">
+          <RadioGroup defaultValue="comfortable" onValueChange={(value) => setRole(value as UserRole)}>
+              <div className="flex items-center gap-3" >
+                <RadioGroupItem value="default" id="r1"/>
+                <Label htmlFor="r1">Interviewer</Label>
+              </div>
+              <div className="flex items-center gap-3">
+                <RadioGroupItem value="comfortable" id="r2" defaultChecked />
+                <Label htmlFor="r2">Applicant</Label>
+              </div>
+          </RadioGroup>
         </div>
         <div className="grid gap-3">
           <Label htmlFor="password">Password</Label>
