@@ -10,6 +10,8 @@ import AnalyticsPage from "@/pages/interviewer/AnalyticsPage";
 import CreateInterviewPage from "@/pages/interviewer/CreateInterviewPage";
 import MyApplicationsPage from "@/pages/applicant/MyApplicationPage";
 import BookSlotsPage from "@/pages/applicant/BookSlotsPage";
+import Profile from "./pages/Profile";
+import Integeration from "./pages/Integeration";
 
 export default function App() {
   return (
@@ -57,6 +59,23 @@ export default function App() {
               element={
                 <ProtectedRoute role="APPLICANT">
                   <BookSlotsPage />
+                </ProtectedRoute>
+              }
+            />
+            {/* protected routes common for interviewer and applicant*/}
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="integrations"
+              element={
+                <ProtectedRoute>
+                  <Integeration />
                 </ProtectedRoute>
               }
             />
