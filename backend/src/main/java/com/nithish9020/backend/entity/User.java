@@ -19,21 +19,32 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique=true, nullable=false)
+    @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(nullable=false)
-    private String passwordHash; // BCrypt hashed password
+    @Column(nullable = true)
+    private String passwordHash; // BCrypt hashed password (null for Google OAuth users)
 
     @Builder.Default
-    @Column(nullable=false)
+    @Column(nullable = false)
     private boolean emailVerified = false;
 
     private Instant createdAt;
-    
-    @Column(nullable=false)
+
+    @Column(nullable = false)
     private ROLE role;
+
+    // OAuth fields
+    @Column(unique = true, nullable = true)
+    private String oauthId; // OAuth provider user ID (Google ID or Microsoft ID)
+
+    @Column(nullable = true)
+    private String oauthProvider; // "google" or "microsoft"
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean isOAuthUser = false; // Flag to identify OAuth users
 }

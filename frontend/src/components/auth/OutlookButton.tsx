@@ -1,52 +1,43 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { showToast } from "@/components/ui/Toast";
 import RoleSelectionModal from "./RoleSelectionModal";
 import { UserRole } from "@/lib/types";
 
-export default function GoogleButton() {
+export default function OutlookButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleGoogleAuth = async (role: UserRole) => {
+  const handleMicrosoftAuth = async (role: UserRole) => {
     setIsLoading(true);
     try {
-      // Clear any existing OAuth state
-      sessionStorage.removeItem("oauth_role");
-      sessionStorage.removeItem("oauth_provider");
-      
-      // Google OAuth URL
-      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-      const redirectUri = encodeURIComponent("http://localhost:5173/auth/google/callback");
-      const scope = encodeURIComponent("email profile");
+      // Microsoft OAuth URL
+      const clientId = "your-microsoft-client-id"; // Replace with actual client ID
+      const redirectUri = encodeURIComponent("http://localhost:5173/auth/microsoft/callback");
+      const scope = encodeURIComponent("openid profile email");
       const responseType = "code";
+      const tenantId = "common";
       
-      // Add state parameter for security
-      const state = Math.random().toString(36).substring(2, 15);
-      sessionStorage.setItem("oauth_state", state);
-      
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      const microsoftAuthUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?` +
         `client_id=${clientId}&` +
+        `response_type=${responseType}&` +
         `redirect_uri=${redirectUri}&` +
         `scope=${scope}&` +
-        `response_type=${responseType}&` +
-        `access_type=offline&` +
-        `prompt=consent&` +
-        `state=${state}`;
+        `response_mode=query&` +
+        `state=12345`;
 
       // Store role in sessionStorage for callback
       sessionStorage.setItem("oauth_role", role);
-      sessionStorage.setItem("oauth_provider", "google");
+      sessionStorage.setItem("oauth_provider", "microsoft");
 
-      // Redirect to Google OAuth
-      window.location.href = googleAuthUrl;
+      // Redirect to Microsoft OAuth
+      window.location.href = microsoftAuthUrl;
     } catch (error) {
-      showToast.error("Failed to initiate Google authentication");
+      showToast.error("Failed to initiate Microsoft authentication");
       setIsLoading(false);
     }
   };
@@ -64,15 +55,17 @@ export default function GoogleButton() {
         onClick={handleClick}
         disabled={isLoading}
       >
-        <FcGoogle className="h-5 w-5" />
-        {isLoading ? "Loading..." : "Continue with Google"}
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
+        </svg>
+        {isLoading ? "Loading..." : "Continue with Microsoft"}
       </Button>
 
       <RoleSelectionModal
         isOpen={showRoleModal}
         onClose={() => setShowRoleModal(false)}
-        onRoleSelected={handleGoogleAuth}
-        provider="google"
+        onRoleSelected={handleMicrosoftAuth}
+        provider="microsoft"
       />
     </>
   );

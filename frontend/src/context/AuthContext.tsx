@@ -39,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken("");
     localStorage.removeItem("jwt_token");
     localStorage.removeItem("user");
+    localStorage.removeItem("role");
   };
 
   return (

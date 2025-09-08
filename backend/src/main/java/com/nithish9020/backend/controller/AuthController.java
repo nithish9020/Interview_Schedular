@@ -4,12 +4,15 @@ package com.nithish9020.backend.controller;
 import com.nithish9020.backend.dto.SignupRequest;
 import com.nithish9020.backend.dto.TempUser;
 import com.nithish9020.backend.dto.VerifyOtpRequest;
+import com.nithish9020.backend.dto.OAuthRequest;
 import com.nithish9020.backend.dto.SignupRequest.ROLE;
 import com.nithish9020.backend.entity.User;
 import com.nithish9020.backend.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -21,6 +24,7 @@ public class AuthController {
     private final EmailService emailService;
     private final JwtService jwtService;
     private final RedisService redisService; // Add RedisService
+    private final OAuthService oAuthService;
 
     // Step A: start signup -> create user (unverified), generate OTP, email it
     @PostMapping("/signup")
@@ -55,12 +59,14 @@ public class AuthController {
         if (tempUser == null)
             return ResponseEntity.badRequest().body("Signup expired. Please try again.");
 
-        User saved = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash(), tempUser.getRole());
+        User saved = userService.createLocalUser(tempUser.getName(), email, tempUser.getPasswordHash(),
+                tempUser.getRole());
         userService.markVerified(email);
         redisService.deleteTempUser(email);
 
         String token = jwtService.generateToken(email);
-        return ResponseEntity.ok(new AuthResponse("Email verified. Logged in", token, saved.getRole()));
+        return ResponseEntity.ok(new AuthResponse("Email verified. Logged in", token, saved.getRole(), saved.getName(),
+                saved.getEmail()));
     }
 
     // Optional: login endpoint (email+password) - returns JWT if verified already
@@ -77,10 +83,22 @@ public class AuthController {
         }
 
         String token = jwtService.generateToken(email);
-        return ResponseEntity.ok(new AuthResponse("Login successful", token, user.getRole()));
+        return ResponseEntity
+                .ok(new AuthResponse("Login successful", token, user.getRole(), user.getName(), user.getEmail()));
+    }
+
+    // OAuth callback endpoint
+    @PostMapping("/oauth/callback")
+    public ResponseEntity<?> oauthCallback(@RequestBody OAuthRequest request) {
+        try {
+            Map<String, Object> response = oAuthService.handleOAuthCallback(request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("OAuth authentication failed: " + e.getMessage());
+        }
     }
 
     // Simple response DTO inline
-    record AuthResponse(String message, String token, ROLE role) {
+    record AuthResponse(String message, String token, ROLE role, String name, String email) {
     }
 }

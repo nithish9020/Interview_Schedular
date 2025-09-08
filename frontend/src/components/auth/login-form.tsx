@@ -26,7 +26,10 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
     try {
       const res = await loginUser(email, password);
       showToast.success(res.message || "Login successful");
-      login({ email }, res.token, res.role); // <-- Store JWT and user
+      login({ 
+        email: res.email, 
+        name: res.name 
+      }, res.token, res.role); // <-- Store JWT and user
       navigate("/dashboard");
     } catch (err: any) {
       showToast.error(err.response?.data || "Login failed");
@@ -59,7 +62,10 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
       });
       if (res.data.message?.includes("verified") && res.data.token) {
         showToast.success(res.data.message);
-        login({ email: signupEmail }, res.data.token, res.data.role); // <-- Store JWT and user
+        login({ 
+          email: res.data.email, 
+          name: res.data.name 
+        }, res.data.token, res.data.role); // <-- Store JWT and user
         setOtpStep(false);
         setIsLogin(true);
         navigate("/dashboard"); // <-- Go to dashboard

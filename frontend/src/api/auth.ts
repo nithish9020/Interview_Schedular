@@ -20,3 +20,12 @@ export const loginUser = async (email: string, password: string) => {
   });
   return response.data;
 };
+
+export const oauthCallback = async (code: string, provider: string, role: string) => {
+  const response = await axios.post(`${API_URL}/oauth/callback`, {
+    code,
+    provider,
+    role,
+  });
+  return response.data;
+};

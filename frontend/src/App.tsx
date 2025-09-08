@@ -12,6 +12,8 @@ import MyApplicationsPage from "@/pages/applicant/MyApplicationPage";
 import BookSlotsPage from "@/pages/applicant/BookSlotsPage";
 import Profile from "./pages/Profile";
 import Integeration from "./pages/Integeration";
+import GoogleCallback from "./pages/auth/GoogleCallback";
+import MicrosoftCallback from "./pages/auth/MicrosoftCallback";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/" element={<AuthRedirect />} />
+          <Route path="/auth/google/callback" element={<GoogleCallback />} />
+          <Route path="/auth/microsoft/callback" element={<MicrosoftCallback />} />
           <Route
             path="/dashboard"
             element={

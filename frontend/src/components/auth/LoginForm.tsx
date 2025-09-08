@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import GoogleButton from "./GoogleButton";
+import OutlookButton from "./OutlookButton";
 
 export default function LoginForm({
   onLogin,
@@ -42,6 +44,21 @@ export default function LoginForm({
         </div>
         {error && <div className="text-red-500">{error}</div>}
         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">Login</Button>
+        
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+          </div>
+        </div>
+        
+        <div className="grid gap-3">
+          <GoogleButton />
+          <OutlookButton />
+        </div>
+        
         <div className="text-center text-sm">
           Don&apos;t have an account?{" "}
           <button type="button" onClick={switchToSignup} className="underline underline-offset-4 text-blue-600">
