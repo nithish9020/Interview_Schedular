@@ -75,3 +75,20 @@ yarn-error.log*
 .env.local
 .env.*
 
+# Spring Boot sensitive configuration files
+application-local.properties
+application-dev.properties
+application-prod.properties
+application-staging.properties
+**/application-*.properties
+!**/application.properties
+!**/application-*.properties.template
+
+# Database credentials and connection strings
+**/database.properties
+**/db.properties
+
+# API keys and secrets
+**/secrets.properties
+**/keys.properties
+
