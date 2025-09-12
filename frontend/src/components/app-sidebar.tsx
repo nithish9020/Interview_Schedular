@@ -50,7 +50,7 @@ const sidebarData: Record<UserRole, any> = {
         items: [
           { title: "My Applications", url: "/dashboard/my-applications", icon: FileText },
           { title: "Book Slots", url: "/dashboard/book-slots", icon: Calendar },
-          { title: "Profile", url: "#", icon: User },
+          { title: "Profile", url: "/dashboard/profile", icon: User },
         ],
       },
     ],
