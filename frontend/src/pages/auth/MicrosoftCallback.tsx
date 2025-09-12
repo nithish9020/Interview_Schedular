@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { showToast } from "@/components/ui/Toast";
@@ -9,10 +9,22 @@ export default function MicrosoftCallback() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [isProcessing, setIsProcessing] = useState(true);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions using ref (works with StrictMode)
+    if (hasProcessedRef.current) {
+      return;
+    }
+
     const handleCallback = async () => {
       try {
+        // Double-check to prevent race conditions in StrictMode
+        if (hasProcessedRef.current) {
+          return;
+        }
+        hasProcessedRef.current = true;
+        
         const code = searchParams.get("code");
         const error = searchParams.get("error");
 
@@ -32,7 +44,10 @@ export default function MicrosoftCallback() {
         const role = sessionStorage.getItem("oauth_role");
         const provider = sessionStorage.getItem("oauth_provider");
 
+        console.log("OAuth session data:", { role, provider, code: code.substring(0, 10) + "..." });
+
         if (!role || provider !== "microsoft") {
+          console.error("Invalid OAuth session - role:", role, "provider:", provider);
           showToast.error("Invalid OAuth session");
           navigate("/");
           return;
@@ -46,8 +61,12 @@ export default function MicrosoftCallback() {
         });
 
         if (response.data.token) {
+          console.log("OAuth response data:", response.data);
           showToast.success(response.data.message || "Login successful");
-          login({ email: response.data.email }, response.data.token, response.data.role);
+          login({ 
+            email: response.data.email, 
+            name: response.data.name 
+          }, response.data.token, response.data.role);
           
           // Clear session storage
           sessionStorage.removeItem("oauth_role");
@@ -60,7 +79,7 @@ export default function MicrosoftCallback() {
         }
       } catch (error: any) {
         console.error("OAuth callback error:", error);
-        showToast.error(error.response?.data || "Authentication failed");
+        showToast.error(error.response?.data?.message || error.response?.data || "Authentication failed");
         navigate("/");
       } finally {
         setIsProcessing(false);

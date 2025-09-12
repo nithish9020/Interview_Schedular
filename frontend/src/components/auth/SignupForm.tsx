@@ -6,24 +6,40 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { UserRole } from "@/lib/types";
 import GoogleButton from "./GoogleButton";
 import OutlookButton from "./OutlookButton";
+import { showToast } from "@/components/ui/Toast";
 
 export default function SignupForm({
   onSignup,
-  error,
   switchToLogin,
 }: {
   onSignup: (name: string, email: string, password: string, role: UserRole) => void;
-  error: string;
   switchToLogin: () => void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>(UserRole.APPLICANT); 
+  const [role, setRole] = useState<UserRole | null>(null);
+  const [roleError, setRoleError] = useState(""); 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Clear previous role error
+    setRoleError("");
+    
+    // Validate role selection
+    if (!role) {
+      setRoleError("Please select your role");
+      showToast.error("Please select whether you are an Interviewer or Applicant");
+      return;
+    }
+    
     onSignup(name, email, password, role);
+  };
+
+  const handleRoleChange = (value: string) => {
+    setRole(value as UserRole);
+    setRoleError(""); // Clear error when user selects a role
   };
 
   return (
@@ -44,22 +60,23 @@ export default function SignupForm({
           <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
         </div>
         <div className="grid gap-3">
-          <RadioGroup defaultValue="comfortable" onValueChange={(value) => setRole(value as UserRole)}>
+          <Label>Select your role *</Label>
+          <RadioGroup onValueChange={handleRoleChange}>
               <div className="flex items-center gap-3" >
-                <RadioGroupItem value="default" id="r1"/>
+                <RadioGroupItem value={UserRole.INTERVIEWER} id="r1"/>
                 <Label htmlFor="r1">Interviewer</Label>
               </div>
               <div className="flex items-center gap-3">
-                <RadioGroupItem value="comfortable" id="r2" defaultChecked />
+                <RadioGroupItem value={UserRole.APPLICANT} id="r2"/>
                 <Label htmlFor="r2">Applicant</Label>
               </div>
           </RadioGroup>
+          {roleError && <p className="text-red-500 text-sm">{roleError}</p>}
         </div>
         <div className="grid gap-3">
           <Label htmlFor="password">Password</Label>
           <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
         </div>
-        {error && <div className="text-red-500">{error}</div>}
         <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">Sign Up</Button>
         
         <div className="relative">
