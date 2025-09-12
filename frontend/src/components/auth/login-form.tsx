@@ -119,7 +119,6 @@ export function AuthForm({ className, ...props }: React.ComponentProps<"div">) {
               >
                 <SignupForm
                   onSignup={handleSignup}
-                  error=""
                   switchToLogin={() => setIsLogin(true)}
                 />
               </motion.div>

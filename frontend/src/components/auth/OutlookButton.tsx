@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { showToast } from "@/components/ui/Toast";
 import RoleSelectionModal from "./RoleSelectionModal";
 import { UserRole } from "@/lib/types";
@@ -9,18 +7,16 @@ import { UserRole } from "@/lib/types";
 export default function OutlookButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleMicrosoftAuth = async (role: UserRole) => {
     setIsLoading(true);
     try {
       // Microsoft OAuth URL
-      const clientId = "your-microsoft-client-id"; // Replace with actual client ID
+      const clientId = "9ce6de6a-f5be-497e-8ad6-4a472fd8c6ba"; // Microsoft client ID
       const redirectUri = encodeURIComponent("http://localhost:5173/auth/microsoft/callback");
-      const scope = encodeURIComponent("openid profile email");
+      const scope = encodeURIComponent("openid profile email User.Read");
       const responseType = "code";
-      const tenantId = "common";
+      const tenantId = "fed8c952-0113-4356-ba9b-f852356109e4"; // Microsoft tenant ID
       
       const microsoftAuthUrl = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize?` +
         `client_id=${clientId}&` +
@@ -28,11 +24,14 @@ export default function OutlookButton() {
         `redirect_uri=${redirectUri}&` +
         `scope=${scope}&` +
         `response_mode=query&` +
-        `state=12345`;
+        `prompt=select_account&` +
+        `state=${Date.now()}`;
 
       // Store role in sessionStorage for callback
       sessionStorage.setItem("oauth_role", role);
       sessionStorage.setItem("oauth_provider", "microsoft");
+      
+      console.log("Stored OAuth session data:", { role, provider: "microsoft" });
 
       // Redirect to Microsoft OAuth
       window.location.href = microsoftAuthUrl;

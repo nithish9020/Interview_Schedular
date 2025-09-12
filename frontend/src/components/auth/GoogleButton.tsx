@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FcGoogle } from "react-icons/fc";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import { showToast } from "@/components/ui/Toast";
 import RoleSelectionModal from "./RoleSelectionModal";
 import { UserRole } from "@/lib/types";
@@ -10,8 +8,6 @@ import { UserRole } from "@/lib/types";
 export default function GoogleButton() {
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
 
   const handleGoogleAuth = async (role: UserRole) => {
     setIsLoading(true);
@@ -21,7 +17,10 @@ export default function GoogleButton() {
       sessionStorage.removeItem("oauth_provider");
       
       // Google OAuth URL
-      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+      if (!clientId) {
+        throw new Error("Missing VITE_GOOGLE_CLIENT_ID env var");
+      }
       const redirectUri = encodeURIComponent("http://localhost:5173/auth/google/callback");
       const scope = encodeURIComponent("email profile");
       const responseType = "code";

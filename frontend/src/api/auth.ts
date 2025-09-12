@@ -1,7 +1,7 @@
 import type { UserRole } from "@/lib/types";
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/api/auth";
+const API_URL = `${import.meta.env.VITE_API_URL}/api/auth`;
 
 export const signupUser = async (name: string, email: string, password: string, role: UserRole) => {
   const response = await axios.post(`${API_URL}/signup`, {
@@ -10,6 +10,7 @@ export const signupUser = async (name: string, email: string, password: string, 
     password,
     role
   });
+  console.log(response);
   return response.data;
 };
 
