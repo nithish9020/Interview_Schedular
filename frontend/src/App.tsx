@@ -11,7 +11,7 @@ import CreateInterviewPage from "@/pages/interviewer/CreateInterviewPage";
 import MyApplicationsPage from "@/pages/applicant/MyApplicationPage";
 import BookSlotsPage from "@/pages/applicant/BookSlotsPage";
 import Profile from "./pages/Profile";
-import Integeration from "./pages/Integeration";
+import Integeration from "./pages/Integration";
 import GoogleCallback from "./pages/auth/GoogleCallback";
 import MicrosoftCallback from "./pages/auth/MicrosoftCallback";
 
@@ -76,11 +76,11 @@ export default function App() {
               }
             />
             <Route
-              path="integrations"
+              path="integration"
               element={
                 <ProtectedRoute>
                   <Integeration />
-                </ProtectedRoute>
+                </ProtectedRoute>  
               }
             />
           </Route>

@@ -1,8 +1,11 @@
+import { UserProfile } from '../components/Profile/UserProfile';
 
 const Profile = () => {
   return (
-    <div>Profile</div>
-  )
-}
+    <div className="container">
+      <UserProfile />
+    </div>
+  );
+};
 
-export default Profile
+export default Profile;
