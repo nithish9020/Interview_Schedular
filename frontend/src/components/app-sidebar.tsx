@@ -36,7 +36,7 @@ const sidebarData: Record<UserRole, any> = {
         items: [
           { title: "Analytics", url: "/dashboard/analytics", icon: BarChart, default: true },
           { title: "Create Interview", url: "/dashboard/create-interview", icon: PlusCircle },
-          { title: "Integrations", url: "/dashboard/integrations", icon: LinkIcon },
+          { title: "Integrations", url: "/dashboard/integration", icon: LinkIcon },
           { title: "Profile", url: "/dashboard/profile", icon: User },
         ],
       },
@@ -50,6 +50,7 @@ const sidebarData: Record<UserRole, any> = {
         items: [
           { title: "My Applications", url: "/dashboard/my-applications", icon: FileText },
           { title: "Book Slots", url: "/dashboard/book-slots", icon: Calendar },
+          { title: "Integrations", url: "/dashboard/integration", icon: LinkIcon },
           { title: "Profile", url: "/dashboard/profile", icon: User },
         ],
       },
