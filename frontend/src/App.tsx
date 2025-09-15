@@ -14,6 +14,8 @@ import Profile from "./pages/Profile";
 import Integeration from "./pages/Integration";
 import GoogleCallback from "./pages/auth/GoogleCallback";
 import MicrosoftCallback from "./pages/auth/MicrosoftCallback";
+import InterviewDetails from "@/pages/interviewer/InterviewDetails";
+import ApplicationDetails from "@/pages/applicant/ApplicationDetails";
 
 export default function App() {
   return (
@@ -48,6 +50,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="interview/:id"
+              element={
+                <ProtectedRoute role="INTERVIEWER">
+                  <InterviewDetails />
+                </ProtectedRoute>
+              }
+            />
 
             {/* applicant sub routes */}
             <Route
@@ -55,6 +65,14 @@ export default function App() {
               element={
                 <ProtectedRoute role="APPLICANT">
                   <MyApplicationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-applications/:id"
+              element={
+                <ProtectedRoute role="APPLICANT">
+                  <ApplicationDetails />
                 </ProtectedRoute>
               }
             />
@@ -84,6 +102,8 @@ export default function App() {
               }
             />
           </Route>
+          <Route path="/interviewer/analytics" element={<AnalyticsPage />} />
+          <Route path="/interviewer/interview/:id" element={<InterviewDetails />} />
         </Routes>
         <ToastContainer />
       </Router>
