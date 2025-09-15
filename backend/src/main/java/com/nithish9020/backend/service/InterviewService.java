@@ -1,19 +1,16 @@
 package com.nithish9020.backend.service;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
+import com.nithish9020.backend.dto.CandidateDto;
+import com.nithish9020.backend.dto.CreateInterviewRequest;
+import com.nithish9020.backend.dto.InterviewDto;
+import com.nithish9020.backend.entity.ApplicantInterview;
+import com.nithish9020.backend.entity.Interview;
+import com.nithish9020.backend.repository.ApplicantInterviewRepository;
+import com.nithish9020.backend.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-import com.nithish9020.backend.dto.CreateInterviewRequest;
-import com.nithish9020.backend.dto.CandidateDto;
-import com.nithish9020.backend.entity.Interview;
-import com.nithish9020.backend.entity.ApplicantInterview;
-import com.nithish9020.backend.repository.InterviewRepository;
-import com.nithish9020.backend.repository.ApplicantInterviewRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,16 +18,16 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class InterviewService {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     private final InterviewRepository interviewRepository;
     private final ApplicantInterviewRepository applicantInterviewRepository;
 
@@ -155,5 +152,110 @@ public class InterviewService {
             log.error("Error processing applicant {}: {}", candidate.getEmail(), e.getMessage());
             throw new RuntimeException("Failed to process applicant: " + candidate.getEmail(), e);
         }
+    }
+
+    public List<Interview> getInterviewsByCreator(String createdBy) {
+        return interviewRepository.findByCreatedBy(createdBy);
+    }
+
+    public void deleteInterview(String id, String createdBy) {
+        Interview interview = interviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        if (!interview.getCreatedBy().equals(createdBy)) {
+            throw new RuntimeException("Unauthorized to delete this interview");
+        }
+
+        interviewRepository.deleteById(id);
+    }
+
+    public Interview getInterviewById(String id, String username) {
+        Interview interview = interviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        // Verify that the user has access to this interview
+        if (!interview.getCreatedBy().equals(username)) {
+            throw new RuntimeException("Unauthorized to view this interview");
+        }
+
+        return interview;
+    }
+
+    public List<InterviewDto> getAvailableInterviews(String email) {
+        log.info("Finding available interviews for email: {}", email);
+        List<Interview> allInterviews = interviewRepository.findAll();
+
+        return allInterviews.stream()
+                .filter(this::hasAvailableSlots)
+                .map(interview -> {
+                    InterviewDto dto = new InterviewDto();
+                    dto.setId(interview.getId());
+                    dto.setInterviewName(interview.getInterviewName());
+                    dto.setFromDate(interview.getFromDate().format(DATE_FORMATTER));
+                    dto.setToDate(interview.getToDate().format(DATE_FORMATTER));
+                    dto.setAvailableSlots(getAvailableSlots(interview));
+                    dto.setCreatedBy(interview.getCreatedBy());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private boolean hasAvailableSlots(Interview interview) {
+        return interview.getTimeSlots().values().stream()
+                .anyMatch(slots -> slots.containsValue(null));
+    }
+
+    private Map<String, List<String>> getAvailableSlots(Interview interview) {
+        Map<String, List<String>> availableSlots = new HashMap<>();
+        interview.getTimeSlots().forEach((date, slots) -> {
+            List<String> freeSlots = slots.entrySet().stream()
+                    .filter(entry -> entry.getValue() == null)
+                    .map(Map.Entry::getKey)
+                    .sorted()
+                    .collect(Collectors.toList());
+            if (!freeSlots.isEmpty()) {
+                availableSlots.put(date, freeSlots);
+            }
+        });
+        return availableSlots;
+    }
+
+    @Transactional
+    public void bookSlot(String interviewId, String date, String timeSlot, String email) {
+        log.info("Booking slot for interview: {} on date: {} at time: {} for user: {}",
+                interviewId, date, timeSlot, email);
+
+        Interview interview = interviewRepository.findById(interviewId)
+                .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        Map<String, String> daySlots = interview.getTimeSlots().get(date);
+        if (daySlots == null || !daySlots.containsKey(timeSlot)) {
+            throw new RuntimeException("Invalid time slot");
+        }
+
+        if (daySlots.get(timeSlot) != null) {
+            throw new RuntimeException("Slot already booked");
+        }
+
+        daySlots.put(timeSlot, email);
+        interviewRepository.save(interview);
+
+        // Update applicant's interviews
+        applicantInterviewRepository.findByEmail(email)
+                .ifPresentOrElse(
+                        applicant -> {
+                            if (!applicant.getInterviewIds().contains(interviewId)) {
+                                applicant.getInterviewIds().add(interviewId);
+                                applicantInterviewRepository.save(applicant);
+                            }
+                        },
+                        () -> {
+                            ApplicantInterview newApplicant = new ApplicantInterview();
+                            newApplicant.setEmail(email);
+                            newApplicant.setInterviewIds(new ArrayList<>(List.of(interviewId)));
+                            applicantInterviewRepository.save(newApplicant);
+                        });
+
+        log.info("Successfully booked slot for interview: {}", interviewId);
     }
 }

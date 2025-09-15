@@ -1,3 +1,4 @@
+import type { Interview } from '@/pages/interviewer/AnalyticsPage';
 import axios, { AxiosError } from 'axios';
 
 export interface Candidate {
@@ -11,6 +12,15 @@ export interface CreateInterviewRequest {
   toDate: string;
   timeSlots: Record<string, Record<string, string | null>>;
   candidates: Candidate[];
+}
+
+export interface AvailableInterview {
+  id: string;
+  interviewName: string;
+  fromDate: string;
+  toDate: string;
+  availableSlots: Record<string, string[]>;
+  createdBy: string;
 }
 
 const api = axios.create({
@@ -88,4 +98,46 @@ export const createInterview = async (request: CreateInterviewRequest) => {
     }
     throw error;
   }
+};
+
+export const getMyInterviews = async () => {
+  try {
+    const response = await api.get('/api/interviews/my-interviews');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch interviews:', error);
+    throw error;
+  }
+};
+
+export const deleteInterview = async (id: string) => {
+  try {
+    await api.delete(`/api/interviews/${id}`);
+  } catch (error) {
+    console.error('Failed to delete interview:', error);
+    throw error;
+  }
+};
+
+export const getInterviewById = async (id: string): Promise<Interview> => {
+  try {
+    const response = await api.get(`/api/interviews/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch interview details:', error);
+    throw error;
+  }
+};
+
+export const getAvailableInterviews = async (): Promise<AvailableInterview[]> => {
+  const response = await api.get('/api/interviews/available');
+  return response.data;
+};
+
+export const bookSlot = async (
+  interviewId: string,
+  date: string,
+  timeSlot: string
+): Promise<void> => {
+  await api.post(`/api/interviews/${interviewId}/book`, { date, timeSlot });
 };
