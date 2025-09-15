@@ -17,7 +17,7 @@ public class JwtService {
     private final long expMinutes;
 
     public JwtService(@Value("${app.jwt.secret}") String secret,
-                      @Value("${app.jwt.expiration}") long expMinutes) {
+            @Value("${app.jwt.expiration}") long expMinutes) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes());
         this.expMinutes = expMinutes;
     }
@@ -38,5 +38,14 @@ public class JwtService {
         return Jwts.parserBuilder().setSigningKey(key).build()
                 .parseClaimsJws(token)
                 .getBody().getSubject();
+    }
+
+    // Add this new method
+    public String getUsernameFromToken(String token) {
+        try {
+            return validateAndGetSubject(token);
+        } catch (JwtException e) {
+            throw new IllegalArgumentException("Invalid JWT token", e);
+        }
     }
 }
